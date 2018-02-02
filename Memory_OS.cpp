@@ -66,10 +66,10 @@ void Initialize_Mem(int mem_size)
   cout << "\nMemory Initialized. Memory reserved for OS.\n";
 }
 
-
 void printMBT()
 {
-  for(int i = 0; i < mbt.size; i++){
+  for (int i = 0; i < mbt.size; i++)
+  {
     cout << "MBT[" << i << "] = " << mbt.states[i] << endl;
   }
 }
@@ -119,6 +119,7 @@ void InitProc()
     }
 
     rq.tail = p; // update tail to point to the new pcb
+    rq.size++;
 
     // output page table and MBT
     cout << "\nID: " << p->process_ID << " | Size: " << p->pageSize << endl;
@@ -221,7 +222,9 @@ void TerminateProcess(int ID)
       be terminated.
     */
     cout << "\n\t**Terminating process with ID: " << p->process_ID << endl;
-
+    
+    // reducing the size of the ready queue.
+    rq.size--;
     // we need to get the size of how many blocks we will free up in the MBT
     int loops = p->pageSize;
 
@@ -275,15 +278,79 @@ void TerminateProcess(int ID)
   }
 }
 
+void TerminateAllProcesses(){
+
+  while(rq.head != NULL){
+    int id = rq.head->process_ID;
+    TerminateProcess(id);
+  }
+}
+
 int main()
 {
   Initialize_Mem(1024);
   // cout << "Starting " << mbt.availableBlocks << endl;
   srand(time(NULL));
-  cout << "\nEnter to exit the program: " << endl;
 
-  InitProc();
-  InitProc();
+  int input = 0;
+  int id_delete = 0;
+  int termP = 0;
+
+  while (true)
+  {
+    cout << "Choose an option:" << endl;
+    cout << "1: Initiate a process\n2: Print All Processes in Ready Queue\n"
+         << "3: Terminate Process with a specific PID\n4: Exit" << endl;
+
+    cin >> input;
+
+    if (input == 1)
+    {
+      InitProc();
+    }
+    else if (input == 2)
+    {
+      printProc();
+    }
+    else if (input == 3)
+    {
+      cout << "\n\t**Enter an ID of the process you wish to kill: ";
+      cin >> id_delete;
+      TerminateProcess(id_delete);
+    }
+    else if (input == 4)
+    {
+      if (rq.size > 0)
+      {
+        while (true)
+        {
+          cout << "\n\t**You have processes running, would you like to terminate?: (1 = yes, 0 = no): ";
+          cin >> termP;
+          if (termP == 1)
+          {
+            TerminateAllProcesses();
+            exit(0);
+          }
+          else if (termP == 0)
+          {
+            break;
+          }
+          else
+          {
+            cout << "\n\t**Enter a valid input" << endl;
+          }
+        }
+      }
+      else{
+        exit(0);
+      }
+    }
+    else
+    {
+      cout << "\n\t**PLEASE ENTER A VALID INPUT" << endl;
+    }
+  }
+
   cin.ignore().get();
   delete[] mem.data;
   delete[] mbt.states;
