@@ -122,21 +122,28 @@ void printProc()
   // gets the first pcb on the readyqueue.
   pcb *p = rq.head;
 
+  // if it is empty, notify the user that there is no process running.
   if (p == NULL)
   {
     cout << "No processes running";
   }
   else
   {
+    /*
+      if the pointer is not null then we print out the ID of the process, the starting address that it takes
+      and the size that the process takes up.
+    */
     while (p != NULL)
     {
       cout << "ID: " << p->process_ID << " | Address: " << p->address << " | Size: " << p->pageSize << endl;
 
       // debugging
-      for (int i = 0; i < p->pageSize; i++)
-      {
-        cout << "Block " << i << " = " << p->blocks[i] << endl;
-      }
+      // for (int i = 0; i < p->pageSize; i++)
+      // {
+      //   cout << "Block " << i << " = " << p->blocks[i] << endl;
+      // }
+
+      // we get the next pcb in the readyqueue.
       p = p->nextPT;
     }
   }
