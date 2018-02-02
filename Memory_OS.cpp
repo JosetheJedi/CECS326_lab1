@@ -26,12 +26,12 @@ struct MBT
 struct pcb
 {
   int process_ID; //ID of proces
-  pcb *nextPT;//pointer to next PT
+  pcb *nextPT;    //pointer to next PT
 
   //Page table for a process, address translation
   int address;  //location of memory block process starts
   int pageSize; //number of blocks taken by process
-  int *blocks;  
+  int *blocks;
 };
 
 //Ready Queue for the processes
@@ -64,6 +64,14 @@ void Initialize_Mem(int mem_size)
     mbt.states[i] = true;
   }
   cout << "\nMemory Initialized. Memory reserved for OS.\n";
+}
+
+
+void printMBT()
+{
+  for(int i = 0; i < mbt.size; i++){
+    cout << "MBT[" << i << "] = " << mbt.states[i] << endl;
+  }
 }
 
 void InitProc()
@@ -111,6 +119,20 @@ void InitProc()
     }
 
     rq.tail = p; // update tail to point to the new pcb
+
+    // output page table and MBT
+    cout << "\nID: " << p->process_ID << " | Size: " << p->pageSize << endl;
+    for (int i = 0; i < p->pageSize; i++)
+    {
+      cout << "Block " << i << " = " << p->blocks[i] << endl;
+    }
+
+    // outputting the MBT
+    printMBT();
+  }
+  else
+  {
+    cout << "\n\t**Insufficient Memory:" << mbt.availableBlocks << endl;
   }
 
   // debugging
@@ -125,7 +147,7 @@ void printProc()
   // if it is empty, notify the user that there is no process running.
   if (p == NULL)
   {
-    cout << "No processes running";
+    cout << "\n\t**No processes running!**\n";
   }
   else
   {
@@ -190,7 +212,7 @@ void TerminateProcess(int ID)
   // if the ID provided was not found in the readyqueue then we notify the user.
   if (found != true)
   {
-    cout << "Given output ID not found" << endl;
+    cout << "\n\t**Given output ID not found!**" << endl;
   }
   else
   {
@@ -198,7 +220,7 @@ void TerminateProcess(int ID)
       when we find the PCB that has the given ID we notify the user that the process will
       be terminated.
     */
-    cout << "Terminating process with ID: " << p->process_ID << endl;
+    cout << "\n\t**Terminating process with ID: " << p->process_ID << endl;
 
     // we need to get the size of how many blocks we will free up in the MBT
     int loops = p->pageSize;
@@ -211,15 +233,15 @@ void TerminateProcess(int ID)
     // MBT blocks to set to true.
     for (int i = 0; i < loops; i++)
     {
-      int index = p->blocks[i]; // get the address that an index in the
-                                // page table takes up.
-      mbt.states[index] = false;// sets that index in the MBT to false, meaning free.
-      p->blocks[i] = 0;         // setting the value in the page table to 0.
+      int index = p->blocks[i];  // get the address that an index in the
+                                 // page table takes up.
+      mbt.states[index] = false; // sets that index in the MBT to false, meaning free.
+      p->blocks[i] = 0;          // setting the value in the page table to 0.
     }
 
-    delete(p->blocks); // getting rid of the blocks array.
-    p->pageSize = 0; // resetting the value of the pagetable.
-    p->address = 0; // nullifying the value of the address.
+    delete (p->blocks); // getting rid of the blocks array.
+    p->pageSize = 0;    // resetting the value of the pagetable.
+    p->address = 0;     // nullifying the value of the address.
 
     // getting rid of the pcb from the readyqueue
     if (last != NULL)
@@ -248,6 +270,8 @@ void TerminateProcess(int ID)
     {
       rq.head = p->nextPT;
     }
+
+    delete (p);
   }
 }
 
@@ -259,22 +283,7 @@ int main()
   cout << "\nEnter to exit the program: " << endl;
 
   InitProc();
-  printProc();
-  TerminateProcess(0);
-  printProc();
-
   InitProc();
-  InitProc();
-  InitProc();
-  printProc();
-
-  TerminateProcess(1);
-  TerminateProcess(2);
-  TerminateProcess(3);
-  printProc();
-
-  InitProc();
-  printProc();
   cin.ignore().get();
   delete[] mem.data;
   delete[] mbt.states;
