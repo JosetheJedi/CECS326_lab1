@@ -281,8 +281,7 @@ void TerminateProcess(int ID)
 void TerminateAllProcesses(){
 
   while(rq.head != NULL){
-    int id = rq.head->process_ID;
-    TerminateProcess(id);
+    TerminateProcess(rq.head->process_ID);
   }
 }
 
@@ -329,6 +328,7 @@ int main()
           if (termP == 1)
           {
             TerminateAllProcesses();
+            cout << "\n\t****EXITING PROGRAM****" << endl;
             exit(0);
           }
           else if (termP == 0)
@@ -342,6 +342,7 @@ int main()
         }
       }
       else{
+        cout << "\n\t****EXITING PROGRAM****" << endl;
         exit(0);
       }
     }
