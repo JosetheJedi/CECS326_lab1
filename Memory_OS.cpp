@@ -26,12 +26,12 @@ struct MBT
 struct pcb
 {
   int process_ID; //ID of proces
-  pcb *nextPT;
+  pcb *nextPT;//pointer to next PT
 
   //Page table for a process, address translation
   int address;  //location of memory block process starts
   int pageSize; //number of blocks taken by process
-  int *blocks;  //pointer to next PT
+  int *blocks;  
 };
 
 //Ready Queue for the processes
@@ -119,76 +119,129 @@ void InitProc()
 
 void printProc()
 {
+  // gets the first pcb on the readyqueue.
   pcb *p = rq.head;
 
-  while (p != NULL)
+  if (p == NULL)
   {
-    cout << "ID: " << p->process_ID << " | Address: " << p->address << " | Size: " << p->pageSize << endl;
+    cout << "No processes running";
+  }
+  else
+  {
+    while (p != NULL)
+    {
+      cout << "ID: " << p->process_ID << " | Address: " << p->address << " | Size: " << p->pageSize << endl;
 
-    // debugging
-    for(int i = 0; i < p->pageSize; i++){
-      cout << "Block " << i<< " = " << p->blocks[i] << endl;
+      // debugging
+      for (int i = 0; i < p->pageSize; i++)
+      {
+        cout << "Block " << i << " = " << p->blocks[i] << endl;
+      }
+      p = p->nextPT;
     }
-    p = p->nextPT;
-    
   }
 }
 
-void TerminateP(int ID){
+void TerminateProcess(int ID)
+{
 
-  pcb *p = rq.head;
-  pcb *last = NULL;
-  bool found = false;
+  pcb *p = rq.head;   // points to the current pcb
+  pcb *last = NULL;   // points to the last pcb
+  bool found = false; // will change to true if process we are trying
+                      // to terminate is found.
 
-  while((p != NULL)){
+  // while there are still pcb's in the linked list then we will continue
+  // the search for the pcb with the matching ID.
+  while ((p != NULL))
+  {
 
-    int compare = p->process_ID;
-    cout << "comparing: " << ID << " with " << compare << endl;
+    int compare = p->process_ID; // getting the ID to compare from the
+                                 // current PCB
 
-    if(ID == compare){
+    // for debugging
+    // cout << "comparing: " << ID << " with " << compare << endl;
+
+    // comparing the pcb given by the user with the current pcb_id
+    // if found we will set the found value to true then break the while loop.
+    if (ID == compare)
+    {
       found = true;
       break;
     }
-    else{
+    else
+    {
+      /*
+        if the current pcb_id does not match the id given by the user
+        then we set the last pcb pointer to the current one, then
+        we change the current pcb to the next pcb on the readyqueue.
+      */
       last = p;
       p = p->nextPT;
     }
   }
 
-  if(found != true){
+  // if the ID provided was not found in the readyqueue then we notify the user.
+  if (found != true)
+  {
     cout << "Given output ID not found" << endl;
   }
-  else{
+  else
+  {
+    /*
+      when we find the PCB that has the given ID we notify the user that the process will
+      be terminated.
+    */
     cout << "Terminating process with ID: " << p->process_ID << endl;
 
+    // we need to get the size of how many blocks we will free up in the MBT
     int loops = p->pageSize;
+
+    // change the available block to account for the blocks freed after terminating the
+    // process..
     mbt.availableBlocks = mbt.availableBlocks + loops;
 
-    for(int i = 0; i < loops; i++){
-      int index = p->blocks[i];
-      mbt.states[index] = false;
-      p->blocks[i] = 0;
+    // we will search through the PCB page table to determine which
+    // MBT blocks to set to true.
+    for (int i = 0; i < loops; i++)
+    {
+      int index = p->blocks[i]; // get the address that an index in the
+                                // page table takes up.
+      mbt.states[index] = false;// sets that index in the MBT to false, meaning free.
+      p->blocks[i] = 0;         // setting the value in the page table to 0.
     }
-    p->blocks = NULL;
-    p->pageSize = 0;
-    p->address = 0;
+
+    delete(p->blocks); // getting rid of the blocks array.
+    p->pageSize = 0; // resetting the value of the pagetable.
+    p->address = 0; // nullifying the value of the address.
 
     // getting rid of the pcb from the readyqueue
-    if(last != NULL){
+    if (last != NULL)
+    {
+      /* if the last pointer is not null then this process is not at the head
+        of the ready queue so we need to point the last pointer to the next pointer
+      
+      */
       last->nextPT = p->nextPT;
 
-      if(rq.tail == p){
+      /*
+        if the pointer we are removing is at the tail, then we change the
+        tail to the previous pointer.
+      */
+      if (rq.tail == p)
+      {
         rq.tail = last;
       }
     }
 
-    if(rq.head == p){
+    /*
+      if the pointer that we are removing is at the head of the readyqueue
+      then we must change the head to the next pointer.
+    */
+    if (rq.head == p)
+    {
       rq.head = p->nextPT;
     }
-
   }
-
-
 }
 
 int main()
@@ -197,14 +250,22 @@ int main()
   // cout << "Starting " << mbt.availableBlocks << endl;
   srand(time(NULL));
   cout << "\nEnter to exit the program: " << endl;
+
   InitProc();
+  printProc();
+  TerminateProcess(0);
+  printProc();
+
   InitProc();
   InitProc();
   InitProc();
   printProc();
-  TerminateP(2);
+
+  TerminateProcess(1);
+  TerminateProcess(2);
+  TerminateProcess(3);
   printProc();
-  InitProc();
+
   InitProc();
   printProc();
   cin.ignore().get();
