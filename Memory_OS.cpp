@@ -11,7 +11,7 @@ static int unID = 0;
 struct memory
 {
   int size;     //size of Memory, number of blocks
-  string *data; //array of data in memory, string values in blocks
+  int *data; //array of data in memory, string values in blocks
 } mem;
 
 //Memory Block Table of system memory
@@ -42,7 +42,7 @@ struct ready_queue
   pcb *tail; //pointer to tail
 } rq;
 
-//return unput string for program name
+//return input string for program name
 // string Program_Name(){
 //   cout << "\nProgram Name: ";
 //   string s = "";
@@ -90,6 +90,7 @@ void InitProc()
   if (mbt.availableBlocks >= size)
   {
     mbt.availableBlocks = mbt.availableBlocks - size;
+    mem.size = mem.size - size;
 
     int placed = 0;
     int currBlock = 32;
@@ -231,6 +232,7 @@ void TerminateProcess(int ID)
     // change the available block to account for the blocks freed after terminating the
     // process..
     mbt.availableBlocks = mbt.availableBlocks + loops;
+    mem.size = mem.size + loops;
 
     // we will search through the PCB page table to determine which
     // MBT blocks to set to true.
